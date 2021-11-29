@@ -15,7 +15,7 @@ import tec.psl.AnalyzeReq;
 /**
  * Servlet implementation class PersonAPI
  */
-@WebServlet("/api/*")
+// @WebServlet("/api/*")
 public class PersonAPI extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
@@ -40,7 +40,7 @@ public class PersonAPI extends HttpServlet {
 		
 		switch(analyze.getResult()) {
 		case noMatch: 
-			send(response, 401, "No match");
+			send(response, 404, "No match");
 			break;
 		case personMatch:
 			send(response, 200, "Match person");
@@ -50,7 +50,7 @@ public class PersonAPI extends HttpServlet {
 			break;
 		}
 		
-		
+		   
 		
 //		PrintWriter out = response.getWriter();
 		
