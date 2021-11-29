@@ -27,9 +27,31 @@ public class PersonAPI extends HttpServlet {
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
+	
+	private ArrayList<Person> personList;
+	
 	public PersonAPI() {
 		super();
 		// TODO Auto-generated constructor stub
+		createTestData();
+	}
+
+	private void createTestData() {
+		
+		Person person1 = new Person(1001, "Anders And", "aa@andeby.dk", "Hidsigprop");
+		Person person2 = new Person(1002, "Rip And", "rip@andeby.dk", "Spasmager");
+		Person person3 = new Person(1003, "Rap And", "rap@andeby.dk", "Spasmager");
+		Person person4 = new Person(1004, "Rup And", "rap@andeby.dk", "Spasmager");
+		Person person5 = new Person(1005, "Anders And", "aa@andeby.dk", "Hidsigprop");
+		Person person6 = new Person(1006, "Ziegelveit B. Zhonk", "zbz@andeby.dk", "Overborgmester");
+		
+		personList = new ArrayList<>();
+		personList.add(person1);
+		personList.add(person2);
+		personList.add(person3);
+		personList.add(person4);
+		personList.add(person5);
+		personList.add(person6);
 	}
 
 	/**
@@ -45,20 +67,7 @@ public class PersonAPI extends HttpServlet {
 
 		AnalyzeReq analyze = new AnalyzeReq(endpoint);
 
-		Person person1 = new Person(1001, "Anders And", "aa@andeby.dk", "Hidsigprop");
-		Person person2 = new Person(1002, "Rip And", "rip@andeby.dk", "Spasmager");
-		Person person3 = new Person(1003, "Rap And", "rap@andeby.dk", "Spasmager");
-		Person person4 = new Person(1004, "Rup And", "rap@andeby.dk", "Spasmager");
-		Person person5 = new Person(1005, "Anders And", "aa@andeby.dk", "Hidsigprop");
-		Person person6 = new Person(1006, "Ziegelveit B. Zhonk", "zbz@andeby.dk", "Overborgmester");
-
-		ArrayList<Person> personList = new ArrayList<>();
-		personList.add(person1);
-		personList.add(person2);
-		personList.add(person3);
-		personList.add(person4);
-		personList.add(person5);
-		personList.add(person6);
+		
 
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -78,7 +87,9 @@ public class PersonAPI extends HttpServlet {
 					return;
 				}
 			}
-			send(response, 200, "Match person med id " + analyze.getPersId());
+//			send(response, 200, "Match person med id " + analyze.getPersId());
+			send(response, 200, "Person med id = " + analyze.getPersId() +" findes ikke");
+
 			break;
 		}
 
@@ -110,10 +121,57 @@ public class PersonAPI extends HttpServlet {
 		String input = read(request);
 		person = mapper.readValue(input, Person.class);
 		
-		send(response, 200, mapper.writeValueAsString(person));
+		personList.add(person);
 		
+		send(response, 201, mapper.writeValueAsString(person));
 		
+	}
+	
+	protected void doPut(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
+		String endpoint = request.getPathInfo();
+
+		AnalyzeReq analyze = new AnalyzeReq(endpoint);
+		
+		if(analyze.getResult() != AnalyzeResult.personIDMatc) {
+			send(response, 404, "");
+			return;
+		}
+		String input = read(request);
+		ObjectMapper mapper = new ObjectMapper();
+		
+		for(Person p: personList) {
+			if(p.getId() == analyze.getPersId()) {
+				mapper.readerForUpdating(p).readValue(input);
+				send(response, 200, "Updated");
+				return;
+			}
+		}
+		// Hvis jeg er her er der ikke fundet en person med det requestede ID
+		send(response, 200, "Person med id = " + analyze.getPersId() +" findes ikke");
+	}
+	
+	protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+
+		String endpoint = request.getPathInfo();
+
+		AnalyzeReq analyze = new AnalyzeReq(endpoint);
+		
+		if(analyze.getResult() != AnalyzeResult.personIDMatc) {
+			send(response, 404, "");
+			return;
+		}
+		for(Person p: personList) {
+			if(p.getId() == analyze.getPersId()) {
+				if(personList.remove(p)) {
+					send(response, 200, "Removed person with id = " + analyze.getPersId());
+					return;
+				}
+			}
+		}
+		send(response, 200, "Person med id = " + analyze.getPersId() +" findes ikke");
 	}
 	
 	private String read(HttpServletRequest request) {
