@@ -1,4 +1,4 @@
-package tec.psl.demo2;
+package tec.psl.demo3;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,7 +21,7 @@ import tec.psl.Person;
 /**
  * Servlet implementation class PersonAPI
  */
-//@WebServlet("/api/*")
+@WebServlet("/api/*")
 public class PersonAPI extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
@@ -30,45 +30,20 @@ public class PersonAPI extends HttpServlet {
 	 */
 	
 	private ArrayList<Person> personList;
+	Data dbh;
 	
 	public PersonAPI() {
 		super();
-		// TODO Auto-generated constructor stub
-		createTestData();
+		dbh = new Data();
 	}
 
-	private void createTestData() {
-		
-		Data dbh = new Data();
-		
-		Person person1 = new Person(1001, "Anders And", "aa@andeby.dk", "Hidsigprop");
-		Person person2 = new Person(1002, "Rip And", "rip@andeby.dk", "Spasmager");
-		Person person3 = new Person(1003, "Rap And", "rap@andeby.dk", "Spasmager");
-		Person person4 = new Person(1004, "Rup And", "rap@andeby.dk", "Spasmager");
-		Person person5 = new Person(1005, "Anders And", "aa@andeby.dk", "Hidsigprop");
-		Person person6 = new Person(1006, "Ziegelveit B. Zhonk", "zbz@andeby.dk", "Overborgmester");
-		
-		personList = new ArrayList<>();
-		personList.add(person1);
-		personList.add(person2);
-		personList.add(person3);
-		personList.add(person4);
-		personList.add(person5);
-		personList.add(person6);
-	}
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
 		String endpoint = request.getPathInfo();
 
 		AnalyzeReq analyze = new AnalyzeReq(endpoint);
-
-		
 
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -77,20 +52,14 @@ public class PersonAPI extends HttpServlet {
 			send(response, 404, "No match");
 			break;
 		case personMatch:
+			personList = dbh.getAllPersons();
 			String json = mapper.writeValueAsString(personList);
 			send(response, 200, json);
 			break;
 		case personIDMatc:
-			// Finde object der har id = 1002
-			for (Person p : personList) {
-				if (p.getId() == analyze.getPersId()) {
-					send(response, 200, mapper.writeValueAsString(p));
-					return;
-				}
-			}
-
-			send(response, 200, "Person med id = " + analyze.getPersId() +" findes ikke");
-
+			
+			Person p = dbh.getPerson(analyze.getPersId());
+			send(response, 200, mapper.writeValueAsString(p));
 			break;
 		}
 	}
@@ -116,9 +85,12 @@ public class PersonAPI extends HttpServlet {
 		String input = read(request);
 		person = mapper.readValue(input, Person.class);
 		
-		personList.add(person);
+		if(dbh.insertPerson(person)) {
+			send(response, 201, mapper.writeValueAsString(person));
+			return;
+		}
+		send(response, 200, "Insert failed");
 		
-		send(response, 201, mapper.writeValueAsString(person));
 	}
 	
 	protected void doPut(HttpServletRequest request, HttpServletResponse response)
@@ -134,16 +106,13 @@ public class PersonAPI extends HttpServlet {
 		}
 		String input = read(request);
 		ObjectMapper mapper = new ObjectMapper();
-		
-		for(Person p: personList) {
-			if(p.getId() == analyze.getPersId()) {
-				mapper.readerForUpdating(p).readValue(input);
-				send(response, 200, "Updated");
-				return;
-			}
+		Person p = mapper.readValue(input, Person.class);
+		if(dbh.update(analyze.getPersId(), p)) {
+			send(response, 200, "Updated");
+			return;
 		}
+		send(response, 200, "Person med id = " + analyze.getPersId() +" findes ikke");		
 		// Hvis jeg er her er der ikke fundet en person med det requestede ID
-		send(response, 200, "Person med id = " + analyze.getPersId() +" findes ikke");
 	}
 	
 	protected void doDelete(HttpServletRequest request, HttpServletResponse response)
@@ -157,14 +126,7 @@ public class PersonAPI extends HttpServlet {
 			send(response, 404, "");
 			return;
 		}
-		for(Person p: personList) {
-			if(p.getId() == analyze.getPersId()) {
-				if(personList.remove(p)) {
-					send(response, 200, "Removed person with id = " + analyze.getPersId());
-					return;
-				}
-			}
-		}
+		
 		send(response, 200, "Person med id = " + analyze.getPersId() +" findes ikke");
 	}
 	
