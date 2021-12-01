@@ -122,11 +122,15 @@ public class PersonAPI extends HttpServlet {
 
 		AnalyzeReq analyze = new AnalyzeReq(endpoint);
 		
+		
 		if(analyze.getResult() != AnalyzeResult.personIDMatc) {
 			send(response, 404, "");
 			return;
 		}
-		
+		if(dbh.delete(analyze.getPersId())) {
+			send(response, 200, "Person med id = " + analyze.getPersId() +" Blev slettet");	
+			return;
+		}
 		send(response, 200, "Person med id = " + analyze.getPersId() +" findes ikke");
 	}
 	

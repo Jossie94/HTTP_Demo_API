@@ -7,7 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import com.microsoft.sqlserver.*;
+//import com.microsoft.sqlserver.*;
 
 public class Data {
 
@@ -28,7 +28,7 @@ public class Data {
 	private void connect() {
 		try {
 			conn = DriverManager.getConnection(connStr, user, password);
-			System.out.println("Connected");
+//			System.out.println("Connected");
 		} catch (SQLException e) {
 			System.out.println(e.getMessage());
 		}
@@ -128,11 +128,24 @@ public class Data {
 		return retVal;
 	}
 
-	public void delete(int id) {
+	public boolean delete(int id) {
 		connect();
-		String sql = "";
+		boolean retVal = false;
+		String sql = "delete from person where persid = ?";
+		try {
+			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, id);
+			if(stmt.executeUpdate() == 1) {
+				retVal = true;
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		close();
+		return retVal;
 	}
 
 }
