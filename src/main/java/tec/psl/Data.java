@@ -7,13 +7,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-//import com.microsoft.sqlserver.*;
+import com.microsoft.sqlserver.*;
 
 public class Data {
 
-	private String connStr = "jdbc:sqlserver://localhost;databaseName=personapi";
+	private String connStr = "jdbc:sqlserver://VISTI\\SQLEXPRESS;databaseName=personapi";
 	private String user = "loginforpersonapi";
-	private String password = "loginforpersonapi";
+	private String password = "123";
 	private Connection conn;
 	private PreparedStatement stmt;
 
@@ -28,9 +28,9 @@ public class Data {
 	private void connect() {
 		try {
 			conn = DriverManager.getConnection(connStr, user, password);
-//			System.out.println("Connected");
+System.out.println("Connected");
 		} catch (SQLException e) {
-			System.out.println(e.getMessage());
+			System.out.println(e.getErrorCode());
 		}
 	}
 
